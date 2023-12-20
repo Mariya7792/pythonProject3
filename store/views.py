@@ -6,7 +6,15 @@ from django.http import HttpResponse
 
 def products_view(request):
     if request.method == 'GET':
-        return JsonResponse(DATABASE, json_dumps_params={'ensure_ascii': False,
+        id = request.GET.get('id')
+        if id:
+            if id in DATABASE:
+                return JsonResponse(DATABASE[id], json_dumps_params={'ensure_ascii': False,
+                                                                 'indent': 4})
+            else:
+                return 'HttpResponseNotFound ("Данного продукта нет в базе данных")'
+        else:
+            return JsonResponse(DATABASE, json_dumps_params={'ensure_ascii': False,
                                                          'indent': 4})
 def shop_view(request):
     if request.method == 'GET':
