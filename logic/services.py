@@ -72,10 +72,14 @@ def add_to_cart(id_product: str) -> bool:
        не существует).
        """
     cart = view_in_cart()
-
-
-
-    return True
+    if id_product in DATABASE.values():
+        if id_product not in cart['products']:
+            cart['products']['amount'] = 1
+        else:
+            cart['products']['amount'] = cart['products']['amount'] + 1
+        return True
+    else:
+        return False
 def remove_from_cart (id_product:str) -> bool:
     """
    Убираем позицию продукта из корзины. Если в корзине есть такой продукт, то удаляется ключ в словаре
@@ -87,18 +91,11 @@ def remove_from_cart (id_product:str) -> bool:
    """
     cart = view_in_cart()
     if id_product in DATABASE.values():
-        if id_product not in cart['products']:
-            cart['products']['amount'] = 1
-        else:
-            cart['products']['amount'] = cart['products']['amount'] + 1
-
-
-
-
-
-
-    return True
-
+        if id_product in cart['products']:
+            del cart['products'][id_product]
+            return True
+    else:
+            return False
 
 if __name__ == "__main__":
     print(view_in_cart())  # {'products': {}}
