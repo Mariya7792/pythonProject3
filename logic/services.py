@@ -15,14 +15,12 @@ def filtering_category(database: dict,
     то возвращается пустой список
     """
     if category_key is not None:
-        result = [key for key in database.values() ...  #  TODO При помощи фильтрации в list comprehension профильтруйте товары по категории. Или можете использовать
-        # обычный цикл или функцию filter
+        result = [product for product in database.values() if product['category'] == category_key]
     else:
-        result = database
+        result = [diction for diction in database.values()]
     if ordering_key is not None:
-        ... #  TODO Проведите сортировку result по ordering_key и параметру reverse
+        result.sort(key=lambda x: x[ordering_key], reverse=reverse)
     return result
-
 
 if __name__ == "__main__":
     from store.models import DATABASE
