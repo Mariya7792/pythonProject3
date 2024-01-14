@@ -57,7 +57,7 @@ def view_in_cart() -> dict:
             return json.load(f)
 
     cart = {'products': {}}
-    with open('cart.json', mode='x', encoding='unf-8') as f:
+    with open('cart.json', mode='x', encoding='utf-8') as f:
         json.dump(cart, f)
 
     return cart
@@ -72,11 +72,13 @@ def add_to_cart(id_product: str) -> bool:
        не существует).
        """
     cart = view_in_cart()
-    if id_product in DATABASE.values():
+    if id_product in DATABASE:
         if id_product not in cart['products']:
-            cart['products']['amount'] = 1
+            cart['products'][id_product] = 1
         else:
-            cart['products']['amount'] = cart['products']['amount'] + 1
+            cart['products'][id_product] += 1
+        with open('cart.json', 'w') as f:
+            json.dump(cart, f)
         return True
     else:
         return False
@@ -90,12 +92,14 @@ def remove_from_cart (id_product:str) -> bool:
    не существует).
    """
     cart = view_in_cart()
-    if id_product in DATABASE.values():
+    if id_product in DATABASE:
         if id_product in cart['products']:
             del cart['products'][id_product]
-            return True
+        with open('cart.json', 'w') as f:
+            json.dump(cart, f)
+        return True
     else:
-            return False
+        return False
 
 if __name__ == "__main__":
     print(view_in_cart())  # {'products': {}}

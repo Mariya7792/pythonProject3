@@ -3,6 +3,7 @@ from django.http import JsonResponse, HttpResponseNotFound
 from .models import DATABASE
 from django.http import HttpResponse
 from logic.services import filtering_category
+from logic.services import view_in_cart, add_to_cart, remove_from_cart
 # Create your views here.
 
 def products_view(request):
@@ -58,3 +59,29 @@ def products_page_view(request, page):
                 return HttpResponse(data)
 
         return HttpResponse(status=404)
+
+def cart_view(request):
+    if request.method == 'GET':
+        data = view_in_cart()
+        return JsonResponse(data, json_dumps_params={'ensure_ascii': False,
+                                                     'indent': 4})
+
+def cart_add_view(request, id_product):
+    if request.method == 'GET':
+        result = add_to_cart(id_product)
+        if result:
+            return JsonResponse({'answer':'Продукт успешно добавлен в корзину'},
+                                json_dumps_params={'ensure_ascii': False})
+        return JsonResponse({'answer': 'Неудачное добавление в корзину'},
+                            status=404,
+                            json_dumps_params={'ensure_ascii': False})
+
+def cart_del_view(request, id_product):
+    if request.method == 'GET':
+        result = remove_from_cart(id_product)
+        if result:
+            return JsonResponse({'answer':'Продукт успешно удален из корзины'},
+                                json_dumps_params={'ensure_ascii': False})
+        return JsonResponse({'answer': 'Неудачное удаление из корзины'},
+                            status=404,
+                            json_dumps_params={'ensure_ascii': False})
