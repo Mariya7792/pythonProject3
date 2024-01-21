@@ -39,9 +39,9 @@ def products_view(request):
                                                                  'indent':4})
 def shop_view(request):
     if request.method == 'GET':
-        with open('store/shop.html', encoding='utf-8') as f:
-            data = f.read()
-        return HttpResponse(data)
+        return render(request,
+                      'store/shop.html',
+                      context={'products': DATABASE.values()})
 
 def products_page_view(request, page):
     if request.method == 'GET':
