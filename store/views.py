@@ -71,7 +71,7 @@ def cart_view(request):
             product = DATABASE[product_id]
             product['quantity'] = quantity
             product['price_total'] = f"{quantity * product['price_after']:.2f}"
-            products[product_id] = product
+            products.append(product)
 
         return render(request, 'store/cart.html', context={'products':products})
 
