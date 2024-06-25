@@ -95,6 +95,8 @@ def remove_from_cart (id_product:str) -> bool:
     if id_product in DATABASE:
         if id_product in cart['products']:
             del cart['products'][id_product]
+        else:
+            return False
         with open('cart.json', 'w') as f:
             json.dump(cart, f)
         return True
