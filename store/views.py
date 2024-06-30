@@ -1,9 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseNotFound
 from .models import DATABASE
 from django.http import HttpResponse
 from logic.services import filtering_category
 from logic.services import view_in_cart, add_to_cart, remove_from_cart
+from django.contrib.auth import get_user
+from django.contrib.auth.decorators import login_required
 # Create your views here.
 
 def products_view(request):
@@ -59,10 +61,11 @@ def products_page_view(request, page):
                 return HttpResponse(data)
 
         return HttpResponse(status=404)
-
+@login_required(login_url='login:login_view')
 def cart_view(request):
     if request.method == 'GET':
-        data = view_in_cart()
+        current_user = get_user(request).username
+        data = view_in_cart(request)[current_user]
         if request.GET.get('format') == 'JSON':
             return JsonResponse(data, json_dumps_params={'ensure_ascii': False,
                                                          'indent': 4})
@@ -75,9 +78,10 @@ def cart_view(request):
 
         return render(request, 'store/cart.html', context={'products':products})
 
+@login_required(login_url='login:login_view')
 def cart_add_view(request, id_product):
     if request.method == 'GET':
-        result = add_to_cart(id_product)
+        result = add_to_cart(request, id_product)
         if result:
             return JsonResponse({'answer':'Продукт успешно добавлен в корзину'},
                                 json_dumps_params={'ensure_ascii': False})
@@ -87,10 +91,63 @@ def cart_add_view(request, id_product):
 
 def cart_del_view(request, id_product):
     if request.method == 'GET':
-        result = remove_from_cart(id_product)
+        result = remove_from_cart(request, id_product)
         if result:
             return JsonResponse({'answer':'Продукт успешно удален из корзины'},
                                 json_dumps_params={'ensure_ascii': False})
         return JsonResponse({'answer': 'Неудачное удаление из корзины'},
                             status=404,
                             json_dumps_params={'ensure_ascii': False})
+def coupon_check_view(request, name_coupon):
+    DATA_COUPON = {
+        "coupon": {
+            "value": 10,
+            "is_valid": True},
+        "coupon_old": {
+            "value": 20,
+            "is_valid": False},
+        }
+    if request.method == "GET":
+        if name_coupon in DATA_COUPON:
+            return JsonResponse({'discount': DATA_COUPON[name_coupon]["value"], 'is_valid': DATA_COUPON[name_coupon]["is_valid"]},
+                                json_dumps_params={'ensure_ascii': False})
+        return HttpResponseNotFound("Неверный купон")
+def delivary_estimate_view(request):
+    DATA_PRICE = {
+        "Россия": {
+            "Москва": {"price": 80},
+            "Санкт-Петербург": {"price": 80},
+            "fix_price": 100,
+        }
+    }
+    if request.method == "GET":
+        data = request.GET
+        country = data.get('country')
+        city = data.get('city')
+        if country and city in DATA_PRICE[country]:
+            return JsonResponse({"price": DATA_PRICE[country][city]["price"]},
+                                json_dumps_params={'ensure_ascii': False})
+        elif country in DATA_PRICE and city not in DATA_PRICE[country]:
+            return JsonResponse({"price": DATA_PRICE[country]["fix_price"]},
+                                json_dumps_params={'ensure_ascii': False})
+        elif country not in DATA_PRICE:
+            return HttpResponse("Неверные данные")
+
+@login_required(login_url='login:login_view')
+def cart_buy_now_view(request, id_product):
+    if request.method == "GET":
+        result = add_to_cart(request, id_product)
+        if result:
+            return redirect("store:cart_view")
+
+        return HttpResponseNotFound('Неудачное добавление в корзину')
+def cart_remove_view(request, id_product):
+    if request.method == "GET":
+        result = remove_from_cart(request, id_product)
+        if result:
+            return redirect("store:cart_view")
+
+        return HttpResponseNotFound("Неудачное удаление из корзины")
+
+
+
